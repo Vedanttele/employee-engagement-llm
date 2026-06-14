@@ -18,13 +18,15 @@ venv/
 env/
 
 # Data (keep schema, not actual data)
-data/raw/*.csv
-data/raw/*.parquet
-data/synthetic/*.csv
-data/processed/*.csv
-data/processed/*.pkl
-data/processed/embeddings_cache.pkl
-data/processed/topic_model/
+data/raw/
+data/synthetic/
+data/processed/
+data/rag/
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
 
 # Jupyter
 .ipynb_checkpoints/
