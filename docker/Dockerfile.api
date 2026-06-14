@@ -1,0 +1,32 @@
+FROM python:3.12-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# System deps for presidio/spacy and HuggingFace
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Build stage ────────────────────────────────────────────────────────────────
+FROM base AS builder
+COPY pyproject.toml ./
+RUN pip install --upgrade pip && pip install build && pip install .
+
+# Download spaCy model for Presidio PII detection
+RUN python -m spacy download en_core_web_lg
+
+# ── Runtime stage ──────────────────────────────────────────────────────────────
+FROM base AS runtime
+COPY --from=builder /usr/local/lib/python3.12 /usr/local/lib/python3.12
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY employee_engagement/ ./employee_engagement/
+
+EXPOSE 8000
+
+CMD ["uvicorn", "employee_engagement.api.main:app", \
+     "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
